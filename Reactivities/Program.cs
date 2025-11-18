@@ -2,19 +2,34 @@ using Persistence.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Application.Activities.Queries;
 using Application.Core;
+using Application.Activities.Validators;
+using FluentValidation;
+using Reactivities.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddDbContext<AppDbContext>(options => { options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")); });
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
 builder.Services.AddCors();
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<GetActivityList.Handler>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfiles>()); 
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssemblyContaining<GetActivityList.Handler>();
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+});
+
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfiles>());
+builder.Services.AddValidatorsFromAssemblyContaining<CreateActivityValidator>();
+builder.Services.AddTransient<ExceptionMiddleware>();
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(options => options.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000", "https://localhost:3000"));
 
 app.MapControllers();

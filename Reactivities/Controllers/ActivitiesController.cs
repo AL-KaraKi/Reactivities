@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Application.Activities.Queries;
 using Application.Activities.Commands;
+using Application.Activities.DTOs;
 
 namespace Reactivities.Controllers
 {
@@ -16,27 +17,25 @@ namespace Reactivities.Controllers
         [HttpGet("GetActivityDetail/{id}")]
         public async Task<ActionResult<Activity>> GetActivityDetail(string id)
         {
-            return await Mediator.Send(new GetActivityDetails.Query { Id = id });
+            return HandleResult(await Mediator.Send(new GetActivityDetails.Query { Id = id }));
         }
 
         [HttpPost("CreateActivity")]
-        public async Task<ActionResult<string>> CreateActivity(Activity activity, CancellationToken cancellationToken)
+        public async Task<ActionResult<string>> CreateActivity(CreateActivityDto activityDto, CancellationToken cancellationToken)
         {
-            return await Mediator.Send(new CreateActivity.Command { Activity = activity }, cancellationToken);
+            return HandleResult(await Mediator.Send(new CreateActivity.Command { ActivityDto = activityDto }, cancellationToken));
         }
 
         [HttpPut("EditActivity")]
-        public async Task<ActionResult> EditActivity(Activity activity, CancellationToken cancellationToken)
+        public async Task<ActionResult> EditActivity(EditActivityDto activity, CancellationToken cancellationToken)
         {
-            await Mediator.Send(new EditActivity.Command { Activity = activity }, cancellationToken);
-            return NoContent();
+            return HandleResult(await Mediator.Send(new EditActivity.Command { ActivityDto = activity }, cancellationToken));
         }
 
         [HttpDelete("DeleteActivity/{id}")]
         public async Task<ActionResult> DeleteActivity(string id, CancellationToken cancellationToken)
         {
-            await Mediator.Send(new DeleteActivity.Command { Id = id }, cancellationToken);
-            return NoContent();
+            return HandleResult(await Mediator.Send(new DeleteActivity.Command { Id = id }, cancellationToken));
         }
     }
 }
